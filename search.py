@@ -21,6 +21,7 @@ class Search:
         self.params = get_params()
         self.oneNote = OneNote(self.cookies)
         self.db = Db()
+
     def get_search_note(self, query, number):
         data = get_search_data()
         api = '/api/sns/web/v1/search/notes'
@@ -72,7 +73,8 @@ class Search:
                 index += 1
                 # 去重
                 if not self.db.getId(note['id']):
-                    self.oneNote.save_one_note_info(self.oneNote.detail_url + note['id'], categoryName, need_cover, '', 'datas_search')
+                    self.oneNote.save_one_note_info(self.oneNote.detail_url + note['id'], categoryName, need_cover, '',
+                                                    'datas_search')
                 else:
                     logger.info(note['id'] + "已存在")
                 if index >= number:
@@ -99,6 +101,11 @@ if __name__ == '__main__':
     sort = 'general'
 
     searchs = [
+        {
+            "categoryId": 2,
+            "categoryName": "体育",
+            "word": ["足球", "篮球", "网球", "乒乓球", "游泳", "田径", "健身", "羽毛球"]
+        },
         {
             "categoryId": 3,
             "categoryName": "游戏",
@@ -134,3 +141,4 @@ if __name__ == '__main__':
             }
             search.main(info, cs['categoryName'])
         time.sleep(60)
+    logger.info('所有数据已完成！！！！')
