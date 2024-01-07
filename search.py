@@ -102,16 +102,6 @@ if __name__ == '__main__':
 
     searchs = [
         {
-            "categoryId": 2,
-            "categoryName": "体育",
-            "word": ["足球", "篮球", "网球", "乒乓球", "游泳", "田径", "健身", "羽毛球"]
-        },
-        {
-            "categoryId": 3,
-            "categoryName": "游戏",
-            "word": ["电子游戏", "手机游戏", "桌游", "角色扮演游戏", "竞技游戏", "棋牌游戏", "休闲游戏"]
-        },
-        {
             "categoryId": 4,
             "categoryName": "娱乐",
             "word": ["电影", "电视剧", "综艺节目", "话剧", "音乐剧", "明星娱乐", "演唱会", "舞台剧"]
@@ -140,5 +130,8 @@ if __name__ == '__main__':
                 'sort': sort,
             }
             search.main(info, cs['categoryName'])
-        time.sleep(60)
+            time.sleep(60)
+            logger.info('休眠60s')
+        time.sleep(360)
+        logger.info('休眠360s')
     logger.info('所有数据已完成！！！！')
