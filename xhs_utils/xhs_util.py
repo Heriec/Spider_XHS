@@ -4,6 +4,8 @@ import sys
 import time
 import execjs
 import requests
+
+from logger.logger import logger
 from pojo.note import Note_Detail
 from pojo.user import User_Detail
 
@@ -42,14 +44,14 @@ def download_media(path, name, url, type, info=''):
     for i in range(5):
         try:
             if type == 'image':
-                # print(f"{info}图片开始下载, {url}")
-                print(f"{info}图片开始下载")
+                # logger.info(f"{info}图片开始下载, {url}")
+                logger.info(f"{info}图片开始下载")
                 content = requests.get(url).content
                 with open(path + '/' + name + '.jpg', mode="wb") as f:
                     f.write(content)
-                    print(f"{info}图片下载完成")
+                    logger.info(f"{info}图片下载完成")
             elif type == 'video':
-                print(f"{name}开始下载, {url}")
+                logger.info(f"{name}开始下载, {url}")
                 start_time = time.time()
                 res = requests.get(url, stream=True)
                 size = 0
@@ -60,13 +62,13 @@ def download_media(path, name, url, type, info=''):
                         f.write(data)
                         size += len(data)
                         percentage = size / content_size
-                        print(f'\r视频:%.2fMB\t' % (content_size / 1024 / 1024),
+                        logger.info(f'\r视频:%.2fMB\t' % (content_size / 1024 / 1024),
                               '下载进度:[%-50s%.2f%%]耗时: %.1fs, ' % ('>' * int(50 * percentage), percentage * 100, time.time() - start_time),
                               end='')
-                    print(f"{name}下载完成")
+                    logger.info(f"{name}下载完成")
             break
         except:
-            print(f"第{i+1}次下载失败，重新下载, 剩余{4-i}次机会")
+            logger.info(f"第{i+1}次下载失败，重新下载, 剩余{4-i}次机会")
             continue
 
 def handle_profile_info(userId, html_text):
@@ -212,10 +214,10 @@ def get_search_data():
     return {
         "image_scenes": "FD_PRV_WEBP,FD_WM_WEBP",
         "keyword": "",
-        "note_type": "0",
+        "note_type": "1",
         "page": "",
         "page_size": "20",
-        "search_id": "2c7hu5b3kzoivkh848hp0",
+        "search_id": "2colu40g7yy8rywec4r4i@2colu4audwyjpvhqjqmw9",
         "sort": "general"
     }
 def get_params():
@@ -244,7 +246,7 @@ def check_cookies():
         try:
             ret = js.call('get_xs', api, '', a1)
         except:
-            print('缺少nodejs环境')
+            logger.info('缺少nodejs环境')
             return
         headers['x-s'], headers['x-t'] = ret['X-s'], str(ret['X-t'])
         response = requests.get(more_url, headers=headers, cookies=cookies_local, params=params)
@@ -252,8 +254,8 @@ def check_cookies():
         if not res["success"]:
             raise Exception("cookie失效")
         else:
-            print("cookie有效")
+            logger.info("cookie有效")
             return cookies_local
     except:
-        print("cookie失效，请手动更改cookies.txt文件")
+        logger.info("cookie失效，请手动更改cookies.txt文件")
         sys.exit(1)

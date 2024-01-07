@@ -1,6 +1,12 @@
 import json
+import logging
+
 import requests
-from xhs_utils.xhs_util import get_headers, get_params, js, check_cookies, get_note_data, handle_note_info, norm_str, check_and_create_path, save_note_detail, download_media
+
+from db.db_util import Db
+from logger.logger import logger
+from xhs_utils.xhs_util import get_headers, get_params, js, check_cookies, get_note_data, handle_note_info, norm_str
+
 
 class OneNote:
     def __init__(self, cookies=None):
@@ -12,6 +18,7 @@ class OneNote:
         self.detail_url = 'https://www.xiaohongshu.com/explore/'
         self.headers = get_headers()
         self.params = get_params()
+        self.db = Db()
 
     # 单个视频
     def get_one_note_info(self, url):
@@ -25,42 +32,33 @@ class OneNote:
         try:
             data = res['data']['items'][0]
         except:
-            print(f'笔记 {note_id} 不允许查看')
+            logger.info(f'笔记 {note_id} 不允许查看')
             return
         note = handle_note_info(data)
         return note
 
     # cover 是否覆盖
-    def save_one_note_info(self, url, need_cover=False, info='', dir_path='datas'):
+    def save_one_note_info(self, url, categoryName, need_cover=False, info='', dir_path='datas'):
         try:
             note = self.get_one_note_info(url)
             nickname = norm_str(note.nickname)
-            user_id = note.user_id
             title = norm_str(note.title)
-            if title.strip() == '':
-                title = f'无标题'
-            path = f'./{dir_path}/{nickname}_{user_id}/{title}_{note.note_id}'
-            exist = check_and_create_path(path)
-            if exist and not need_cover:
-                print(f'用户: {nickname}, 标题: {title} 本地已存在，跳过保存')
-                return note
-            save_note_detail(path, note)
             note_type = note.note_type
-            if note_type == 'normal':
-                for img_index, img in enumerate(note.image_list):
-                    img_url = img['info_list'][1]['url']
-                    download_media(path, f'image_{img_index}', img_url, 'image', f'第{img_index}张图片')
-
-            elif note_type == 'video':
+            # 该分支只处理视频到数据库中
+            if note_type == 'video':
                 img_url = note.image_list[0]['info_list'][1]['url']
-                download_media(path, 'cover', img_url, 'image', '视频封面')
+                # download_media(path, 'cover', img_url, 'image', '视频封面')
                 video_url = note.video_addr
-                download_media(path, 'video', video_url, 'video')
-            print(f'用户: {nickname}, {info}标题: {title} 笔记保存成功')
-            print('===================================================================')
+                # download_media(path, 'video', video_url, 'video')
+                self.db.insert_data(note.note_id, img_url, video_url, note.title, note.desc,
+                                    int(note.liked_count), int(note.collected_count), int(note.comment_count), int(note.share_count),
+                                    note.upload_time, note.tag_list, note.ip_location,
+                                    categoryName)
+                logger.info(f'用户: {nickname}, {info}标题: {title} 笔记保存成功')
+                logger.info('===================================================================')
             return note
         except:
-            print(f'笔记 {url} 保存失败')
+            logger.info(f'笔记 {url} 保存失败')
             return
 
     def main(self, url_list):
@@ -68,8 +66,9 @@ class OneNote:
             try:
                 self.save_one_note_info(url)
             except:
-                print(f'笔记 {url} 保存失败')
+                logger.info(f'笔记 {url} 保存失败')
                 continue
+
 
 if __name__ == '__main__':
     one_note = OneNote()
@@ -81,4 +80,3 @@ if __name__ == '__main__':
         # 'https://www.xiaohongshu.com/explore/637f0938000000001f012d15',
     ]
     one_note.main(url_list)
-

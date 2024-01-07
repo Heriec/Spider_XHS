@@ -1,5 +1,6 @@
 import requests
 
+from logger.logger import logger
 from xhs_utils.xhs_util import get_headers, check_cookies, handle_profile_info, download_media, check_and_create_path, norm_str, save_user_detail
 
 class Profile:
@@ -20,14 +21,14 @@ class Profile:
 
     def save_profile_info(self, url):
         profile = self.get_profile_info(url)
-        print(f'开始保存用户{profile.nickname}基本信息')
+        logger.info(f'开始保存用户{profile.nickname}基本信息')
         userId = profile.userId
         nickname = norm_str(profile.nickname)
         path = f'./datas/{nickname}_{userId}'
         check_and_create_path(path)
         download_media(path, 'avatar', profile.avatar, 'image', '用户头像')
         save_user_detail(path, profile)
-        print(f'User {nickname} 信息保存成功')
+        logger.info(f'User {nickname} 信息保存成功')
         return profile
 
 
@@ -36,7 +37,7 @@ class Profile:
             try:
                 self.save_profile_info(url)
             except:
-                print(f'user {url} 查询失败')
+                logger.info(f'user {url} 查询失败')
 
 
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
 import requests
 
+from logger.logger import logger
 from one import OneNote
 from profile import Profile
 from xhs_utils.xhs_util import get_headers, get_params, js, check_cookies
@@ -34,7 +35,7 @@ class Home:
             res = response.json()
             data = res["data"]
             if not data["notes"][0]:
-                print(f"用户{user_id}没有笔记")
+                logger.info(f"用户{user_id}没有笔记")
                 break
             cursor, has_more, note_list = data["cursor"], data["has_more"], data["notes"]
             self.params['cursor'] = cursor
@@ -60,7 +61,7 @@ class Home:
             res = response.json()
             data = res["data"]
             if not data["notes"][0]:
-                print(f"用户{user_id}没有笔记")
+                logger.info(f"用户{user_id}没有笔记")
                 break
             cursor, has_more, note_list = data["cursor"], data["has_more"], data["notes"]
             self.params['cursor'] = cursor
@@ -70,7 +71,7 @@ class Home:
                 self.oneNote.save_one_note_info(self.oneNote.detail_url + note['note_id'], need_cover, info)
             if not has_more:
                 break
-        print(f'用户 {profile.nickname} 全部视频信息保存成功')
+        logger.info(f'用户 {profile.nickname} 全部视频信息保存成功')
 
 
     def main(self, url_list):
@@ -82,7 +83,7 @@ class Home:
             try:
                 self.save_all_note_info(url)
             except:
-                print(f'用户 {url} 查询失败')
+                logger.info(f'用户 {url} 查询失败')
 
 
 if __name__ == '__main__':

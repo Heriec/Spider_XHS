@@ -1,6 +1,11 @@
 import json
 import re
+import time
+
 import requests
+
+from db.db_util import Db
+from logger.logger import logger
 from one import OneNote
 from xhs_utils.xhs_util import get_headers, get_search_data, get_params, js, check_cookies
 
@@ -15,7 +20,7 @@ class Search:
         self.headers = get_headers()
         self.params = get_params()
         self.oneNote = OneNote(self.cookies)
-
+        self.db = Db()
     def get_search_note(self, query, number):
         data = get_search_data()
         api = '/api/sns/web/v1/search/notes'
@@ -28,10 +33,11 @@ class Search:
             data = re.sub(r'"page":".*?"', f'"page":"{page}"', data)
             ret = js.call('get_xs', api, data, self.cookies['a1'])
             self.headers['x-s'], self.headers['x-t'] = ret['X-s'], str(ret['X-t'])
-            response = requests.post(self.search_url, headers=self.headers, cookies=self.cookies, data=data.encode('utf-8'))
+            response = requests.post(self.search_url, headers=self.headers, cookies=self.cookies,
+                                     data=data.encode('utf-8'))
             res = response.json()
             if not res['data']['has_more']:
-                print(f'搜索结果数量为 {len(note_ids)}, 不足 {number}')
+                logger.info(f'搜索结果数量为 {len(note_ids)}, 不足 {number}')
                 break
             items = res['data']['items']
             for note in items:
@@ -41,7 +47,7 @@ class Search:
                     break
         return note_ids
 
-    def handle_note_info(self, query, number, sort, need_cover=False):
+    def handle_note_info(self, query, number, sort, categoryName, need_cover=False):
         data = get_search_data()
         data['sort'] = sort
         api = '/api/sns/web/v1/search/notes'
@@ -54,42 +60,77 @@ class Search:
             data = re.sub(r'"page":".*?"', f'"page":"{page}"', data)
             ret = js.call('get_xs', api, data, self.cookies['a1'])
             self.headers['x-s'], self.headers['x-t'] = ret['X-s'], str(ret['X-t'])
-            response = requests.post(self.search_url, headers=self.headers, cookies=self.cookies, data=data.encode('utf-8'))
+            response = requests.post(self.search_url, headers=self.headers, cookies=self.cookies,
+                                     data=data.encode('utf-8'))
             res = response.json()
             try:
                 items = res['data']['items']
             except:
-                print(f'搜索结果数量为 {index}, 不足 {number}')
+                logger.info(f'搜索结果数量为 {index}, 不足 {number}')
                 break
             for note in items:
                 index += 1
-                self.oneNote.save_one_note_info(self.oneNote.detail_url + note['id'], need_cover, '', 'datas_search')
+                # 去重
+                if not self.db.getId(note['id']):
+                    self.oneNote.save_one_note_info(self.oneNote.detail_url + note['id'], categoryName, need_cover, '', 'datas_search')
+                else:
+                    logger.info(note['id'] + "已存在")
                 if index >= number:
                     break
             if not res['data']['has_more'] and index < number:
-                print(f'搜索结果数量为 {index}, 不足 {number}')
+                logger.info(f'搜索结果数量为 {index}, 不足 {number}')
                 break
-        print(f'搜索结果全部下载完成，共 {index} 个笔记')
+        logger.info(f'搜索结果全部下载完成，共 {index} 个笔记')
 
-
-    def main(self, info):
+    def main(self, info, categoryName):
         query = info['query']
         number = info['number']
         sort = info['sort']
-        self.handle_note_info(query, number, sort, need_cover=True)
+        self.handle_note_info(query, number, sort, categoryName, need_cover=True)
 
 
 if __name__ == '__main__':
     search = Search()
     # 搜索的关键词 
-    query = '亚运会'
+    query = '游戏'
     # 搜索的数量（前多少个）
     number = 2222
     # 排序方式 general: 综合排序 popularity_descending: 热门排序 time_descending: 最新排序
     sort = 'general'
-    info = {
-        'query': query,
-        'number': number,
-        'sort': sort,
-    }
-    search.main(info)
+
+    searchs = [
+        {
+            "categoryId": 3,
+            "categoryName": "游戏",
+            "word": ["电子游戏", "手机游戏", "桌游", "角色扮演游戏", "竞技游戏", "棋牌游戏", "休闲游戏"]
+        },
+        {
+            "categoryId": 4,
+            "categoryName": "娱乐",
+            "word": ["电影", "电视剧", "综艺节目", "话剧", "音乐剧", "明星娱乐", "演唱会", "舞台剧"]
+        },
+        {
+            "categoryId": 5,
+            "categoryName": "音乐",
+            "word": ["流行音乐", "古典音乐", "摇滚乐", "爵士乐", "民谣", "电子音乐", "嘻哈音乐", "R&B"]
+        },
+        {
+            "categoryId": 6,
+            "categoryName": "二次元",
+            "word": ["动漫", "漫画", "游戏原作", "二次元周边", "声优", "二次元活动", "虚拟偶像", "Cosplay"]
+        },
+        {
+            "categoryId": 7,
+            "categoryName": "美食",
+            "word": ["中餐", "西餐", "日料", "韩料", "甜点", "烧烤", "火锅", "美食文化"]
+        }
+    ]
+    for cs in searchs:
+        for word in cs["word"]:
+            info = {
+                'query': word,
+                'number': number,
+                'sort': sort,
+            }
+            search.main(info, cs['categoryName'])
+        time.sleep(60)
