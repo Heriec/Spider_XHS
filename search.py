@@ -130,8 +130,8 @@ if __name__ == '__main__':
                 'sort': sort,
             }
             search.main(info, cs['categoryName'])
-            time.sleep(60)
+            time.sleep(900)
             logger.info('休眠60s' + cs['categoryName'])
-        time.sleep(1800)
+        time.sleep(3600)
         logger.info('休眠1800s' + cs["categoryName"])
     logger.info('所有数据已完成！！！！')
