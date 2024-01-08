@@ -102,11 +102,6 @@ if __name__ == '__main__':
 
     searchs = [
         {
-            "categoryId": 5,
-            "categoryName": "音乐",
-            "word": ["民谣", "电子音乐", "嘻哈音乐", "R&B"]
-        },
-        {
             "categoryId": 6,
             "categoryName": "二次元",
             "word": ["动漫", "漫画", "游戏原作", "二次元周边", "声优", "二次元活动", "虚拟偶像", "Cosplay"]
@@ -125,8 +120,8 @@ if __name__ == '__main__':
                 'sort': sort,
             }
             search.main(info, cs['categoryName'])
+            logger.info('休眠900s' + word)
             time.sleep(900)
-            logger.info('休眠60s' + word)
+        logger.info('休眠3600s' + cs["categoryName"])
         time.sleep(3600)
-        logger.info('休眠1800s' + cs["categoryName"])
     logger.info('所有数据已完成！！！！')
