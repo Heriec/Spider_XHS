@@ -102,14 +102,9 @@ if __name__ == '__main__':
 
     searchs = [
         {
-            "categoryId": 4,
-            "categoryName": "娱乐",
-            "word": ["电影", "电视剧", "综艺节目", "话剧", "音乐剧", "明星娱乐", "演唱会", "舞台剧"]
-        },
-        {
             "categoryId": 5,
             "categoryName": "音乐",
-            "word": ["流行音乐", "古典音乐", "摇滚乐", "爵士乐", "民谣", "电子音乐", "嘻哈音乐", "R&B"]
+            "word": ["民谣", "电子音乐", "嘻哈音乐", "R&B"]
         },
         {
             "categoryId": 6,
@@ -131,7 +126,7 @@ if __name__ == '__main__':
             }
             search.main(info, cs['categoryName'])
             time.sleep(900)
-            logger.info('休眠60s' + cs['categoryName'])
+            logger.info('休眠60s' + word)
         time.sleep(3600)
         logger.info('休眠1800s' + cs["categoryName"])
     logger.info('所有数据已完成！！！！')
